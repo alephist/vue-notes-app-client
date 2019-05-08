@@ -12,7 +12,7 @@
 
         <div class="field is-grouped">
           <div class="control">
-            <button class="button is-info">Submit</button>
+            <button class="button is-info" :class="{ 'is-loading': isLoading }">Submit</button>
           </div>
 
           <div class="control">
@@ -36,16 +36,20 @@ export default {
   data() {
     return {
       title: "",
-      content: ""
+      content: "",
+      isLoading: false
     };
   },
   methods: {
     async addNewNote() {
+      this.isLoading = true;
       try {
         await note.addNote(this.title, this.content);
         this.$router.push({ name: "Notes" });
       } catch (err) {
         alert(err.response.data);
+      } finally {
+        this.isLoading = false;
       }
     }
   }

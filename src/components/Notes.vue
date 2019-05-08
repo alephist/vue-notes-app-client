@@ -11,6 +11,8 @@
           @deleteNote="handleDeleteNote(note._id)"
         />
       </div>
+
+      <b-loading :is-full-page="false" :active.sync="isLoading"></b-loading>
     </div>
   </section>
 </template>
@@ -26,29 +28,39 @@ export default {
   },
   data() {
     return {
+      isLoading: false,
       notes: []
     };
   },
   methods: {
     async fetchAllNotes() {
-      try {
-        const { data } = await note.fetchNotes();
-        this.notes = data;
-      } catch (err) {
-        alert(err.response.data);
-      }
+      const { data } = await note.fetchNotes();
+      this.notes = data;
     },
     async handleDeleteNote(id) {
+      this.isLoading = true;
       try {
-        await note.deleteNote(id);
-        await this.fetchAllNotes();
+        await Promise.all([
+          await note.deleteNote(id),
+          await this.fetchAllNotes()
+        ]);
       } catch (err) {
         alert(err.response.data);
+      } finally {
+        this.isLoading = false;
       }
     }
   },
   async created() {
-    await this.fetchAllNotes();
+    this.isLoading = true;
+    try {
+      await this.fetchAllNotes();
+    } catch (err) {
+      alert(err.response.data);
+      this.notes = [];
+    } finally {
+      this.isLoading = false;
+    }
   }
 };
 </script>
